@@ -1,20 +1,37 @@
 <?php
 session_start();
 
-// Kiểm tra xem người dùng đã đăng nhập chưa
-if (!isset($_SESSION['username'])) {
-    // Nếu không, chuyển hướng đến trang đăng nhập
-    header("Location: login.php");
-    exit();
+// Kiểm tra xem người dùng đã gửi dữ liệu đăng nhập chưa
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Lấy dữ liệu từ form đăng nhập
+    $username = $_POST["username"];
+    $password = $_POST["password"];
+
+    // Kiểm tra dữ liệu đăng nhập với cơ sở dữ liệu
+    if ($username && $password) {
+        // Kết nối đến cơ sở dữ liệu
+        require_once '/Applications/XAMPP/xamppfiles/htdocs/bookmanage/Model/index.php';
+        
+
+        // Truy vấn để kiểm tra thông tin đăng nhập
+        $query = "SELECT * FROM User WHERE TenUser = :username AND MatKhau = :password";
+        $statement = $db->prepare($query);
+        $statement->execute(array(':username' => $username, ':password' => $password));
+        $user = $statement->fetch(PDO::FETCH_ASSOC);
+
+        // Nếu có người dùng với thông tin đăng nhập hợp lệ, chuyển hướng đến trang chính
+        // (/Applications/XAMPP/xamppfiles/htdocs/bookmanage/Controller/Sach.php)
+        if ($user) {
+            $_SESSION['username'] = $username;
+            header("Location: Sach.php"); // Thay đổi main.php thành trang bạn muốn chuyển hướng sau khi đăng nhập thành công
+            exit();
+        } else {
+            echo "<script>alert('Thông tin đăng nhập không chính xác. Vui lòng thử lại!');</script>";
+        }
+    } else {
+        echo "<script>alert('Vui lòng điền đầy đủ thông tin đăng nhập!');</script>";
+    }
 }
-
-// Kết nối đến cơ sở dữ liệu
-
-
-// Truy vấn để lấy dữ liệu từ bảng Sach
-$query = "SELECT * FROM Sach";
-$statement = $db->query($query);
-$sachList = $statement->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -22,48 +39,26 @@ $sachList = $statement->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý Sách</title>
+    <link rel="stylesheet" href="login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <style>
-        /* CSS cho giao diện */
-        body {
-            font-family: Arial, sans-serif;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-    </style>
+    <title>Login</title>
 </head>
 <body>
-    <h1 style="text-align: center;">Danh sách Sách</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Mã Sách</th>
-                <th>Tên Sách</th>
-                <th>Số Lượng</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($sachList as $sach): ?>
-                <tr>
-                    <td><?php echo $sach['MaSach']; ?></td>
-                    <td><?php echo $sach['TenSach']; ?></td>
-                    <td><?php echo $sach['SoLuong']; ?></td>
-                </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-    <p style="text-align: center;"><a href="logout.php">Đăng xuất</a></p>
+    <div class="container">
+        <h1 style="text-align: center; color: #f50057">Login BookManage</h1>
+        <form action="" method="post">
+            <input type="text" id="username" name="username" placeholder="Enter your username" required>
+            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            <input type="submit" value="Đăng nhập">
+        </form>
+        <div class="forgot-password">
+            <a href="/forgot-password">Forgot Password?</a>
+        </div>
+        <div class="login-with-social">
+            <p style="color: #ccc;">Or, Login with</p>
+            <a href="#" class="btn"><i class="fab fa-facebook-f"></i> Facebook</a>
+            <a href="#" class="btn" style="background-color: #f1422d;"><i class="fab fa-google"></i> Google</a>
+        </div>
+    </div>
 </body>
 </html>
