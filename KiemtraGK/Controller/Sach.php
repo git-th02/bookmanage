@@ -9,12 +9,15 @@ if (!isset($_SESSION['username'])) {
 }
 
 // Kết nối đến cơ sở dữ liệu
-
+require_once '/Applications/XAMPP/xamppfiles/htdocs/bookmanage/Model/index.php';
 
 // Truy vấn để lấy dữ liệu từ bảng Sach
 $query = "SELECT * FROM Sach";
 $statement = $db->query($query);
 $sachList = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+// Biến đếm số dong hiển thị
+$rowCount = 0;
 ?>
 
 <!DOCTYPE html>
@@ -56,14 +59,19 @@ $sachList = $statement->fetchAll(PDO::FETCH_ASSOC);
         </thead>
         <tbody>
             <?php foreach ($sachList as $sach): ?>
-                <tr>
-                    <td><?php echo $sach['MaSach']; ?></td>
-                    <td><?php echo $sach['TenSach']; ?></td>
-                    <td><?php echo $sach['SoLuong']; ?></td>
-                </tr>
+                <?php if ($rowCount < 5): ?> 
+                    <tr>  
+                        <td><?php echo $sach['MaSach']; ?></td>
+                        <td><?php echo $sach['TenSach']; ?></td>
+                        <td><?php echo $sach['SoLuong']; ?></td>
+                    </tr>
+                    <?php $rowCount++; ?>
+                <?php else: ?>
+                    <?php break; ?>
+                <?php endif; ?>        
             <?php endforeach; ?>
         </tbody>
     </table>
-    <p style="text-align: center;"><a href="logout.php">Đăng xuất</a></p>
+    
 </body>
 </html>
